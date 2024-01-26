@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "DDTypes.h"
+#import "DDMathEvaluatorResult.h"
 
 @class DDMathOperatorSet;
 @class DDExpression;
@@ -30,13 +31,15 @@ typedef NSNumber* (^DDVariableResolver)(NSString *);
 - (BOOL)registerFunction:(DDMathFunction)function forName:(NSString *)functionName;
 - (NSArray *)registeredFunctions;
 
-- (NSNumber *)evaluateString:(NSString *)expressionString withSubstitutions:(NSDictionary *)substitutions;
-- (NSNumber *)evaluateString:(NSString *)expressionString withSubstitutions:(NSDictionary *)substitutions error:(NSError **)error;
+- (DDMathEvaluatorResult *)evaluateString:(NSString *)expressionString withSubstitutions:(NSDictionary *)substitutions;
+- (DDMathEvaluatorResult *)evaluateString:(NSString *)expressionString withSubstitutions:(NSDictionary *)substitutions error:(NSError **)error;
 
-- (NSNumber *)evaluateExpression:(DDExpression *)expression withSubstitutions:(NSDictionary *)substitutions error:(NSError **)error;
+- (DDMathEvaluatorResult *)evaluateExpression:(DDExpression *)expression withSubstitutions:(NSDictionary *)substitutions error:(NSError **)error;
 
 - (BOOL)addAlias:(NSString *)alias forFunctionName:(NSString *)functionName;
 - (void)removeAlias:(NSString *)alias;
+
+-(id)unwrapFromMathResult:(id)value;
 
 @end
 
