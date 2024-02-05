@@ -139,7 +139,7 @@
     if (matches && _condition) {
         DDExpression *resolvedCondition = [self _expressionByApplyingReplacements:replacements toPattern:_condition];
         NSError *evalError = nil;
-        NSNumber *result = [evaluator evaluateExpression:resolvedCondition withSubstitutions:replacements error:&evalError];
+        NSNumber *result = [evaluator unwrapFromMathResult:[evaluator evaluateExpression:resolvedCondition withSubstitutions:replacements error:&evalError]];
         matches &= [result boolValue];
     }
     return matches;
