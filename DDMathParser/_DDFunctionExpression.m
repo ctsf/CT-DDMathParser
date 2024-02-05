@@ -85,7 +85,7 @@
 	if (canSimplify) {
 		if (evaluator == nil) { evaluator = [DDMathEvaluator defaultMathEvaluator]; }
 		
-        id result = [evaluator evaluateExpression:self withSubstitutions:nil error:error];
+        id result = [evaluator unwrapFromMathResult:[evaluator evaluateExpression:self withSubstitutions:nil error:error]];
 		
 		if ([result isKindOfClass:[_DDNumberExpression class]]) {
 			return result;

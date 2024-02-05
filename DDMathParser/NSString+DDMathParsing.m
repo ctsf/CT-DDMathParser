@@ -12,11 +12,11 @@
 
 @implementation NSString (DDMathParsing)
 
-- (NSNumber *)numberByEvaluatingString {
+- (DDMathEvaluatorResult *)numberByEvaluatingString {
 	return [self numberByEvaluatingStringWithSubstitutions:nil];
 }
 
-- (NSNumber *)numberByEvaluatingStringWithSubstitutions:(NSDictionary *)substitutions {
+- (DDMathEvaluatorResult *)numberByEvaluatingStringWithSubstitutions:(NSDictionary *)substitutions {
 	NSError *error = nil;
 	NSNumber *returnValue = [self numberByEvaluatingStringWithSubstitutions:substitutions error:&error];
 	if (returnValue == nil) {
@@ -25,7 +25,7 @@
 	return returnValue;
 }
 
-- (NSNumber *)numberByEvaluatingStringWithSubstitutions:(NSDictionary *)substitutions error:(NSError **)error {
+- (DDMathEvaluatorResult *)numberByEvaluatingStringWithSubstitutions:(NSDictionary *)substitutions error:(NSError **)error {
     return [[DDMathEvaluator defaultMathEvaluator] evaluateString:self withSubstitutions:substitutions error:error];
 }
 

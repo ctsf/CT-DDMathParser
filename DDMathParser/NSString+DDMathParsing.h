@@ -7,12 +7,12 @@
 //
 
 #import <Foundation/Foundation.h>
-
+#import "DDMathEvaluatorResult.h"
 
 @interface NSString (DDMathParsing)
 
-- (NSNumber *)numberByEvaluatingString;
-- (NSNumber *)numberByEvaluatingStringWithSubstitutions:(NSDictionary *)substitutions;
-- (NSNumber *)numberByEvaluatingStringWithSubstitutions:(NSDictionary *)substitutions error:(NSError **)error;
+- (DDMathEvaluatorResult *)numberByEvaluatingString;
+- (DDMathEvaluatorResult *)numberByEvaluatingStringWithSubstitutions:(NSDictionary *)substitutions;
+- (DDMathEvaluatorResult *)numberByEvaluatingStringWithSubstitutions:(NSDictionary *)substitutions error:(NSError **)error;
 
 @end

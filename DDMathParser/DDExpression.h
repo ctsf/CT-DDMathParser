@@ -34,6 +34,9 @@ typedef NS_ENUM(NSInteger, DDExpressionType) {
 - (DDExpression *)simplifiedExpression;
 - (DDExpression *)simplifiedExpressionWithEvaluator:(DDMathEvaluator *)evaluator error:(NSError **)error;
 
+/// describe salesforce type of expression value(like CS_SALES_FORCE_TYPE_DATE, ... , ) if the field in not a nil
+@property NSString *salesforceReturnType;
+
 #pragma mark Number methods
 @property (readonly) NSNumber *number;
 

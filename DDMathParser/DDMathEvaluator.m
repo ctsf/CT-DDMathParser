@@ -16,6 +16,7 @@
 #import "_DDPrecisionFunctionEvaluator.h"
 #import "DDExpressionRewriter.h"
 #import <objc/runtime.h>
+#import "DDMathEvaluatorResult.h"
 
 
 @implementation DDMathEvaluator {
@@ -178,16 +179,16 @@
 
 #pragma mark - Evaluation
 
-- (NSNumber *)evaluateString:(NSString *)expressionString withSubstitutions:(NSDictionary *)substitutions {
+- (DDMathEvaluatorResult *)evaluateString:(NSString *)expressionString withSubstitutions:(NSDictionary *)substitutions {
 	NSError *error = nil;
-	NSNumber *returnValue = [self evaluateString:expressionString withSubstitutions:substitutions error:&error];
+    DDMathEvaluatorResult *returnValue = [self evaluateString:expressionString withSubstitutions:substitutions error:&error];
 	if (!returnValue) {
 		NSLog(@"error: %@", error);
 	}
 	return returnValue;
 }
 
-- (NSNumber *)evaluateString:(NSString *)expressionString withSubstitutions:(NSDictionary *)substitutions error:(NSError **)error {
+- (DDMathEvaluatorResult *)evaluateString:(NSString *)expressionString withSubstitutions:(NSDictionary *)substitutions error:(NSError **)error {
     DDMathStringTokenizer *tokenizer = [[DDMathStringTokenizer alloc] initWithString:expressionString operatorSet:self.operatorSet error:error];
     if (!tokenizer) { return nil; }
     
@@ -200,9 +201,9 @@
     return [self evaluateExpression:expression withSubstitutions:substitutions error:error];
 }
 
-- (NSNumber *)evaluateExpression:(DDExpression *)expression withSubstitutions:(NSDictionary *)substitutions error:(NSError **)error {
+- (DDMathEvaluatorResult *)evaluateExpression:(DDExpression *)expression withSubstitutions:(NSDictionary *)substitutions error:(NSError **)error {
     if ([expression expressionType] == DDExpressionTypeNumber) {
-        return [expression number];
+        return [[DDMathEvaluatorResult alloc] initWithNumber:[expression number] salesforceType:expression.salesforceReturnType];
     } else if ([expression expressionType] == DDExpressionTypeVariable) {
         return [self _evaluateVariableExpression:expression withSubstitutions:substitutions error:error];
     } else if ([expression expressionType] == DDExpressionTypeFunction) {
@@ -211,7 +212,7 @@
     return nil;
 }
 
-- (NSNumber *)_evaluateVariableExpression:(DDExpression *)e withSubstitutions:(NSDictionary *)substitutions error:(NSError **)error {
+- (DDMathEvaluatorResult *)_evaluateVariableExpression:(DDExpression *)e withSubstitutions:(NSDictionary *)substitutions error:(NSError **)error {
 	id variableValue = [substitutions objectForKey:[e variable]];
     
     if (variableValue == nil) {
@@ -219,39 +220,44 @@
         // use the variable resolver (if available)
         variableValue = [self variableWithName:[e variable]];
     }
-    
-    NSNumber *numberValue = [self _evaluateValue:variableValue withSubstitutions:substitutions error:error];
-    if (numberValue == nil && error != nil && *error == nil) {
+    DDMathEvaluatorResult *value = [self _evaluateValue:variableValue withSubstitutions:substitutions error:error];
+    if (value == nil && error != nil && *error == nil) {
         *error = [NSError errorWithDomain:DDMathParserErrorDomain
                                      code:DDErrorCodeUnresolvedVariable
                                  userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat:@"unable to resolve variable: %@", e],
                                             DDUnknownVariableKey: [e variable]}];
 	}
-	return numberValue;
-    
+    // тут может вернуться строка в качестве результата расчета (неожиданно ...).
+    if(value != nil && [value isKindOfClass:[DDMathEvaluatorResult class]] && value.salesforceType == nil) {
+        value = [[DDMathEvaluatorResult alloc] initWithNumber:value.number salesforceType:e.salesforceReturnType];
+    }
+    return value;
 }
 
-- (NSNumber *)_evaluateFunctionExpression:(_DDFunctionExpression *)e withSubstitutions:(NSDictionary *)substitutions error:(NSError **)error {
+- (DDMathEvaluatorResult *)_evaluateFunctionExpression:(_DDFunctionExpression *)e withSubstitutions:(NSDictionary *)substitutions error:(NSError **)error {
     
     id result = [_functionEvaluator evaluateFunction:e variables:substitutions error:error];
     
     if (!result) { return nil; }
-    
-    NSNumber *numberValue = [self _evaluateValue:result withSubstitutions:substitutions error:error];
-    if (numberValue == nil && error != nil && *error == nil) {
+
+    DDMathEvaluatorResult *value = [self _evaluateValue:result withSubstitutions:substitutions error:error];
+    if (value == nil && error != nil && *error == nil) {
         *error = ERR(DDErrorCodeInvalidFunctionReturnType, @"invalid return type from %@ function", [e function]);
     }
-    return numberValue;
+    if(value != nil && [value isKindOfClass:DDMathEvaluatorResult.class] && value.salesforceType == nil) {
+        value = [[DDMathEvaluatorResult alloc] initWithNumber:value.number salesforceType:e.salesforceReturnType];
+    }
+    return value;
 }
 
-- (NSNumber *)_evaluateValue:(id)value withSubstitutions:(NSDictionary *)substitutions error:(NSError **)error {
+- (DDMathEvaluatorResult *)_evaluateValue:(id)value withSubstitutions:(NSDictionary *)substitutions error:(NSError **)error {
     // given an object of unknown type, this evaluates it as best as it can
     if ([value isKindOfClass:[DDExpression class]]) {
         return [self evaluateExpression:value withSubstitutions:substitutions error:error];
     } else if ([value isKindOfClass:[NSString class]]) {
         return [self evaluateString:value withSubstitutions:substitutions error:error];
     } else if ([value isKindOfClass:[NSNumber class]]) {
-        return value;
+        return [[DDMathEvaluatorResult alloc] initWithNumber:value];
     }
     return nil;
 }
@@ -292,6 +298,15 @@
 
 - (void)addRewriteRule:(NSString *)rule forExpressionsMatchingTemplate:(NSString *)templateString condition:(NSString *)condition {
     [[DDExpressionRewriter defaultRewriter] addRewriteRule:rule forExpressionsMatchingTemplate:templateString condition:condition];
+}
+
+-(id)unwrapFromMathResult:(id)value {
+    id valueUnwrapped = value;
+    if ([value isKindOfClass:[DDMathEvaluatorResult class]]) {
+        DDMathEvaluatorResult *valueBuffer = value;
+        valueUnwrapped = valueBuffer.number;
+    }
+    return valueUnwrapped;
 }
 
 @end

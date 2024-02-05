@@ -49,7 +49,7 @@
 	return DDExpressionTypeNumber;
 }
 - (NSNumber *)evaluateWithSubstitutions:(NSDictionary *)substitutions evaluator:(DDMathEvaluator *)evaluator error:(NSError **)error {
-	return [evaluator evaluateExpression:self withSubstitutions:substitutions error:error];
+	return [evaluator unwrapFromMathResult:[evaluator evaluateExpression:self withSubstitutions:substitutions error:error]];
 }
 - (DDExpression *)simplifiedExpression {
 	NSError *error = nil;
