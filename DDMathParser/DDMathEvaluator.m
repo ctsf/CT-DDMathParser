@@ -203,7 +203,7 @@
 
 - (DDMathEvaluatorResult *)evaluateExpression:(DDExpression *)expression withSubstitutions:(NSDictionary *)substitutions error:(NSError **)error {
     if ([expression expressionType] == DDExpressionTypeNumber) {
-        return [[DDMathEvaluatorResult alloc] initWithNumber:[expression number] salesforceType:expression.salesforceReturnType];
+        return [[DDMathEvaluatorResult alloc] initWithNumber: [self unwrapFromMathResult: [expression number]] salesforceType:expression.salesforceReturnType]; // todo ??
     } else if ([expression expressionType] == DDExpressionTypeVariable) {
         return [self _evaluateVariableExpression:expression withSubstitutions:substitutions error:error];
     } else if ([expression expressionType] == DDExpressionTypeFunction) {

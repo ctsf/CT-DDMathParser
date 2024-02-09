@@ -37,5 +37,27 @@
     return [self.number isEqual:otherEvaluatorResult.number];
 }
 
+- (id)copyWithZone:(NSZone *)zone {
+    // Create a new instance of DDMathEvaluatorResult
+    DDMathEvaluatorResult *copy = [[[self class] allocWithZone:zone] init];
+    
+    // Copy the properties to the new instance
+    copy->_number = [self.number copy];
+    copy->_salesforceType = [self.salesforceType copy];
+    
+    return copy;
+}
+
+- (NSComparisonResult)compare:(DDMathEvaluatorResult *)otherResult {
+    // Compare the numbers of self and otherResult
+    NSNumber* compareWith = nil;
+    if(otherResult == nil) {
+        return [self.number compare:nil];
+    } else if([otherResult isKindOfClass: DDMathEvaluatorResult.class]) {
+        return [self.number compare:otherResult.number];
+    } else {
+        return [self.number compare:otherResult];
+    }
+}
 
 @end
