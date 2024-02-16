@@ -13,8 +13,8 @@
 - (instancetype)initWithNumber:(NSNumber *)number salesforceType:(NSString *)salesforceType {
     self = [super init];
     if (self) {
-        _number = [number copy];
-        _salesforceType = [salesforceType copy];
+        _number = number;
+        _salesforceType = salesforceType;
     }
     return self;
 }
